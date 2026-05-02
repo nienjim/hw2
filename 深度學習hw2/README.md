@@ -1,18 +1,91 @@
-# HW2 — Q-learning vs SARSA (Cliff Walking)
+HW2 — Q-learning 與 SARSA 比較（Cliff Walking）
 
-Files:
-- `train_and_compare.py` — CliffGrid environment, Q-learning and SARSA trainers, plotting and policy visualization.
+一、專案目的
+- 本程式為作業 HW2 的程式範例，實作並比較兩種強化學習方法：Q-learning（離策略）與 SARSA（同策略），使用經典的 Cliff Walking（格子世界）環境進行訓練、繪圖與簡單視覺化，協助產生可供報告分析的結果檔案。
 
-Run the program with Python (no virtual environment or dependency installation instructions included):
+二、檔案說明
+- `train_and_compare.py`：主要程式，包含環境（CliffGridEnv）、Q-learning 與 SARSA 的訓練實作、繪製訓練報酬曲線與貪婪策略的路徑視覺化，並將數值結果儲存在 `outputs/`。
+
+三、如何執行（直接以系統 Python 執行）
+- 在您指定的工作資料夾下執行：
 
 ```bash
 python train_and_compare.py
 ```
 
-Outputs (created in `outputs/`):
-- `rewards.png` — total reward per episode for both methods
-- `policy_q.png` — greedy-policy path from Q-learning
-- `policy_sarsa.png` — greedy-policy path from SARSA
-- `.npy` files with Q and rewards data for further analysis
+- 執行後會在資料夾下產生 `outputs/`，內含圖檔與 numpy 檔案。
 
-If you want, I can run the script now and attach the generated plots and a short comparison report.
+四、環境與預設參數（程式內預設值）
+- 環境：4 × 12 格子（Start 為左下角，Goal 為右下角，底部中間為懸崖）
+- 動作空間：上、右、下、左（4 個動作）
+- 獎勵：步進 -1；掉入懸崖 -100（並回到起點）；到達終點回合結束（獎勵 0）
+- 策略：ε-greedy（程式預設 ε = 0.1）
+- 學習率 α：預設 0.1
+- 折扣因子 γ：預設 0.9
+- 訓練回合數：預設 500 episodes
+
+（如需調整參數，可直接在 `train_and_compare.py` 中修改 `main()` 的變數）
+
+五、輸出說明（`outputs/`）
+- `rewards.png`：每集（episode）的總回報曲線，並比較 Q-learning 與 SARSA 的曲線。
+- `policy_q.png`：以 Q-learning 訓練所得 Q-table，採取貪婪策略（argmax）從起點追蹤到終點的路徑視覺化。
+- `policy_sarsa.png`：同上，但為 SARSA 的貪婪策略路徑視覺化。
+- `Q_q.npy`、`Q_sarsa.npy`：分別為兩種方法訓練後的 Q-table（可用 numpy.load 讀取並作進一步分析）。
+- `rewards_q.npy`、`rewards_sarsa.npy`：每一回合的總回報（array），方便產生統計、繪圖或進行多次實驗後的彙整。
+
+六、建議的結果分析流程（用於報告撰寫）
+1) 學習曲線與收斂性
+- 繪製每一回合的總回報（程式已輸出 `rewards.png`）。為了更清楚比較，建議再畫移動平均（moving average，例如 window=10 或 50）或使用平滑處理，觀察：
+	- 收斂速度（哪個演算法的平均回報較快達到穩定）
+	- 收斂值（穩定期的平均回報大小）
+
+2) 穩定性與波動程度
+- 計算每個演算法最後 N 集（例如最後 50 或 100 集）的平均值與標準差，標準差越小代表越穩定。
+
+3) 策略行為視覺化
+- 使用 `policy_q.png` 與 `policy_sarsa.png` 分析最終策略路徑：
+	- 是否偏好靠近懸崖（冒險）以縮短步數？（Q-learning 通常更傾向學習理論上的最短路徑，可能更冒險）
+	- SARSA 是否展現較保守或避開高風險格子的路徑？
+
+4) 探索行為對學習的影響
+- 可以在不同 ε 值（例如 0.01、0.1、0.2）下重複訓練，觀察探索強度如何影響收斂與策略風險性。
+
+5) 其他可列入報告的統計
+- 每回合掉入懸崖的次數（或累積次數）；
+- 平均步數（從 start 到 goal 所需步數）的變化趨勢；
+- 多次隨機種子（seeds）重複實驗，報告平均結果與信賴區間。
+
+七、推薦的實驗設計（便於撰寫論述）
+- 固定參數比較：在相同 α, γ, ε, episodes 下比較兩方法。確保使用相同的環境初始條件與隨機種子（若程式擴充支援多次重復），以利公平比較。
+- 參數敏感性：分別固定 α 或 ε，改變另一個參數，觀察演算法行為是否穩健。
+- 多個隨機種子：對每組參數使用多個 seed（例如 5~10 個），蒐集平均收斂曲線與變異。
+
+八、報告建議章節與要點
+1. 簡介：目的與研究問題（Q-learning vs SARSA）
+2. 環境與方法：描述 Gridworld/Cliff 設定、狀態/動作/獎勵、參數（α, γ, ε, episodes）
+3. 實驗設定：列出每次實驗的參數配置（表格）與是否固定隨機種子
+4. 結果：
+	- 學習曲線圖（含平滑曲線）
+	- 最終策略視覺化（兩張路徑圖）
+	- 統計比較（最後 N 集的平均、標準差、掉入懸崖次數）
+5. 討論：
+	- 哪一方法收斂較快？哪一方法較穩定？
+	- Q-learning 與 SARSA 在本實驗中的行為差異（冒險 vs 保守）
+	- 探索參數（ε）對結果的影響
+6. 結論與建議：何時選 Q-learning、何時選 SARSA，以及進一步改進方向
+
+九、延伸實驗（可選）
+- 將 episodes 增加到 2000 或 5000 以檢視長期極限行為；
+- 實作多次獨立訓練並繪製平均與信賴帶（confidence band）；
+- 加入 learning-rate decay、epsilon decay，觀察是否改善收斂性；
+- 顯示 Q 值的熱力圖（heatmap），觀察每個狀態最優動作的價值分布；
+- 將環境改成更大或不同形狀的格子，檢驗泛化性。
+
+十、若需要我可以幫您：
+- 在本程式上執行訓練並回傳 `outputs/` 中的圖檔與簡短報告（收斂、穩定性、策略比較）。
+- 新增參數化執行（可由命令列傳入 α, γ, ε, episodes）與多次種子執行。
+- 以 LaTeX 或 Markdown 撰寫完整報告草稿，包含圖表與討論要點。
+
+---
+
+如果您要我現在直接跑一次（不安裝額外套件，使用系統 Python），我可以執行並把生成的圖跟簡短比較報告附上。請確認要用的參數（預設：episodes=500、α=0.1、γ=0.9、ε=0.1），或告訴我您要調整的數值。
